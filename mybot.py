@@ -1,9 +1,6 @@
 import discord
 import os
-import requests
-import io
 import asyncio
-import string
 import time
 import replicate
 import urllib.request
@@ -12,8 +9,6 @@ import numpy as np
 import messages
 
 os.environ['REPLICATE_API_TOKEN'] = '57b5717e8632693a79f0747038512564a640764c'
-replicate_token = '57b5717e8632693a79f0747038512564a640764c'
-
 client = discord.Client(intents=discord.Intents.all())
 PREFIX = "/imagine"
 
@@ -32,16 +27,17 @@ async def on_message(message):
         await handle_input (message)
 
 async def handle_input(message):
+    print (message.content)
     prompt = message.content.split(PREFIX + " ")[1]
     if prompt.strip() == "":
         return
 
     username = message.author.id
     model = replicate.models.get("stability-ai/stable-diffusion")
-    version = model.versions.get(
-        "436b051ebd8f68d23e83d22de5e198e0995357afef113768c20f0b6fcef23c8b")
 
-    # https://replicate.com/stability-ai/stable-diffusion/versions/f178fa7a1ae43a9a9af01b833b9d2ecf97b1bcb0acfd2dc5dd04895e042863f1#input
+    version = model.versions.get(
+        "f178fa7a1ae43a9a9af01b833b9d2ecf97b1bcb0acfd2dc5dd04895e042863f1")
+
     inputs = {
         'width': 768,
         'height': 768,
@@ -56,30 +52,24 @@ async def handle_input(message):
     prediction = replicate.predictions.create(version=version, input=inputs)
     tm = 40
     output = []
-    old_percent_m = ""
     while tm > 0:
         prediction.reload()
+        print (prediction.status, "llllllllllllllll")
 
         if prediction.status == "failed":
             break
-        percent = prediction.logs.split("\n")[-1].split("|")[0]
-        percent_m = ""
-        if percent:
-            percent_m = percent
-        if percent_m != old_percent_m:
-            # await wait_m.edit_text("Processing request from @" + origin_username + " | " + prompt + " | " + percent_m)
-            pass
-        old_percent_m = percent_m
+
         if prediction.status == 'succeeded':
             output = prediction.output
             break
+
         await asyncio.sleep(5)
         tm -= 5
 
     if len(output) == 0:
-        # await wait_m.edit_text("Try running it again, or try a different prompt")
         return
     generated_image_url = output[0]
+    tick = time.time()
     urllib.request.urlretrieve(generated_image_url, f"images/{username}.png")
     photo = open(f"images/{username}.png", "rb")
     await wait_m.delete()
