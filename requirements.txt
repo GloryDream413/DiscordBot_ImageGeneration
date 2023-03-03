@@ -1,0 +1,6 @@
+requests>=2.25.0
+replicate
+asyncio
+discord
+pillow
+numpy
