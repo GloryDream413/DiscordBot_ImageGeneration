@@ -1,11 +1,8 @@
 import discord
 import os
 import asyncio
-import time
 import replicate
 import urllib.request
-from PIL import Image, ImageDraw, ImageFont
-import numpy as np
 import messages
 
 os.environ['REPLICATE_API_TOKEN'] = '57b5717e8632693a79f0747038512564a640764c'
@@ -50,11 +47,10 @@ async def handle_input(message):
     inputs['prompt'] = prompt
     wait_m = await message.channel.send(messages.message["/wait"])
     prediction = replicate.predictions.create(version=version, input=inputs)
-    tm = 40
     output = []
-    while tm > 0:
+    while prediction.status == 'processing' or prediction.status == 'starting':
         prediction.reload()
-        print (prediction.status, "llllllllllllllll")
+        print (prediction.status)
 
         if prediction.status == "failed":
             break
@@ -62,14 +58,12 @@ async def handle_input(message):
         if prediction.status == 'succeeded':
             output = prediction.output
             break
-
         await asyncio.sleep(5)
-        tm -= 5
 
     if len(output) == 0:
         return
+    
     generated_image_url = output[0]
-    tick = time.time()
     urllib.request.urlretrieve(generated_image_url, f"images/{username}.png")
     photo = open(f"images/{username}.png", "rb")
     await wait_m.delete()
