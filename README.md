@@ -6,12 +6,12 @@ pip install -r requirements.txt
 ```
 ### dev mode
 ```
-python3 mybot.py
+python3 bot_ImageGeneration.py
 ```
 ### product mode
 ```
-pm2 start mybot.py --name mybot --interpreter python3
+pm2 start bot_ImageGeneration.py --name bot_ImageGeneration --interpreter python3
 ```
 ```
-pm2 stop mybot.py
+pm2 stop bot_ImageGeneration.py
 ```
